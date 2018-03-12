@@ -37,8 +37,8 @@ class UTXO // une sortie non dépensée
 
 class TX { // transaction standard (many inputs, many outputs)
  public:
-  std::vector<txi>	TXIs;
-  std::vector<utxo>	UTXOs;
+  std::vector<TXI>	TXIs;
+  std::vector<UTXO>	UTXOs;
 };
 
 class TXM { // transaction du mineur
