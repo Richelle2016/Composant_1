@@ -12,7 +12,7 @@ FileInterface::FileInterface(string file_path) {
 	fichier = file_path;
 	ifstream ifs(fichier);
 	if (ifs.fail()) {
-		cout << "la lecture du fichier a echoue" << endl; 
+		cout << "la lecture du fichier a echoue" << endl;
 		throw new string("la lecture du fichier a echoue");
 	}
 	else {
@@ -20,29 +20,28 @@ FileInterface::FileInterface(string file_path) {
 	}
 }
 
-// Parcourt tous les blocs afin de savoir s'ils sont conformes - génére une exception si un n'est pas conforme
+// Parcours tous les blocs afin de savoir s'ils sont conformes - génére une exception si un n'est pas conforme
 void FileInterface::verification() {
-	vector<Bloc> liste_blocs = parse(fichier); // transforme le fichier en un vecteur de Bloc
+	vector<Bloc> liste_blocs = readAll(); // transforme le fichier en un vecteur de Bloc
 	for (vector<Bloc>::iterator it = liste_blocs.begin(); it != liste_blocs.end(); ++it) {
 		Bloc bloc = *it;
 		cout << "Bloc : " << bloc.num << endl;
-		/*	// on parcours la liste et on appelle la methode verification bloc du composant5
-			if (!verify_bloc(bloc)) { // tester car methode verify_bloc attend un Bloc*
-				throw new string("erreur lors de la verification d'un bloc");
-			}*/
+		/*// on parcours la liste et on appelle la methode verification bloc du composant5
+		if (!verify_bloc(bloc)) { // tester car methode verify_bloc attend un Bloc*
+			throw new string("erreur lors de la verification d'un bloc");
+		}*/
 	}
 	cout << "verification successful." << endl;
 }
 
-vector<Bloc> FileInterface::parse(string blocsJson) {
+//Reçoit un file path et retourne un vector contenant tous les blocs
+vector<Bloc> FileInterface::readAll() {
 	vector<Bloc> liste_blocs;
-	ifstream ifs(blocsJson); // lit le fichier
+	ifstream ifs(fichier); // lit le fichier
 	json j = json::parse(ifs); // transforme en json
-
 	// parcours le tableau json contenant les blocs
 	for (const auto& it : j) {
 		Bloc b;
-
 		//recuperation transactions
 		vector<json> transactions = it["Transactions"];
 		TX transaction;
@@ -110,4 +109,30 @@ vector<Bloc> FileInterface::parse(string blocsJson) {
 		liste_blocs.push_back(b);
 	}
 	return liste_blocs;
+}
+
+Bloc FileInterface::findByHash(string hash) {
+	vector<Bloc> ensembleBlocsBlockchain = readAll();//Vecteur de tous les blocs de la blockchain 
+	int i;	//Variable d'incrémentation
+	for (vector<Bloc>::iterator i = ensembleBlocsBlockchain.begin(); i != ensembleBlocsBlockchain.end(); i++)	{
+		Bloc bloc = *i;
+		if (bloc.hash == hash){
+			cout << "Bloc :" << bloc.num << endl;	//Renvoyer le bloc en question à partir de la liste de tous les block
+			return bloc;
+		}
+	}
+	throw new string(" Erreur : Bloc not found");
+}
+
+Bloc FileInterface::findByIndex(int index) {
+	vector<Bloc> ensembleBlocsBlockchain = readAll();		//Vecteur de tous les blocs de la blockchain 
+	int i;//Variable d'incrémentation
+	for (vector<Bloc>::iterator i = ensembleBlocsBlockchain.begin(); i != ensembleBlocsBlockchain.end(); i++) {
+		Bloc bloc = *i;
+		if (bloc.num == index) {
+			cout << "Bloc :" << bloc.num << endl;		//Renvoyer le bloc en question à partir de la liste de tous les block
+			return bloc;
+		}
+	}
+	throw new string(" Erreur : Bloc not found");
 }
