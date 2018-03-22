@@ -2,8 +2,10 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <ctime>
+#include <cstdio>
 
-#include "FileInterfaceAPI.h"
+#include "../../../Interface Fichier/FileInterfaceAPI.h"
 
 using namespace std;
 
@@ -18,6 +20,41 @@ FileInterface::FileInterface(string file_path) {
 	else {
 		cout << "lecture du fichier : " << fichier << " a reussi." << endl;
 	}
+}
+
+//Ecriture d'un bloc converti en "string" dans le fichier
+void FileInterface::write(std::string str)
+{
+	ofstream myfile;
+	myfile.open(fichier);
+	if (!myfile) {
+		cerr << "Error: file could not be opened" << endl;
+		exit(1);
+	}
+
+	myfile << str << endl;
+	std::cout << "Write successful." << endl;
+	myfile.close();
+}
+
+void FileInterface::insert(Bloc bloc)
+{
+	//On utilise le composant_5 pour vérifier si le bloc respecte les spécifications
+	//Faut-il vérifier les transactions ou pas?
+	/*CComposant5 c5;
+	bool ans = c5.verify_bloc(bloc);
+	if (ans == false) {
+	throw std::invalid_argument("The bloc did not respect the specifications.");
+	}*/
+	vector<Bloc> liste_blocs;
+	ifstream ifs(fichier); // lit le fichier
+	json j = json::parse(ifs); // transforme en json
+	string s = toString(true, bloc.hash);
+	auto js = json::parse(s);
+	j.push_back(js);
+	std::ofstream o(fichier);
+	o << std::setw(4) << j << std::endl;
+
 }
 
 // Parcours tous les blocs afin de savoir s'ils sont conformes - génére une exception si un n'est pas conforme
@@ -109,6 +146,78 @@ vector<Bloc> FileInterface::readAll() {
 		liste_blocs.push_back(b);
 	}
 	return liste_blocs;
+}
+
+string FileInterface::toString(bool allInfos, string hash)
+{
+	std::time_t rawtime;
+	std::tm* timeinfo;
+	char buffer[80];
+
+	std::time(&rawtime);
+	timeinfo = std::localtime(&rawtime);
+
+	std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
+	string version = "0x2000";
+	string ID_init = "1";
+	Bloc b = findByHash(hash);
+	string str;
+	str = "{ \n\t\"identifiant\": \"" + to_string(b.num);
+	str += "\",\n\t\"NombreDeTransaction\": \"1\",\n\t\"Hashes\": { \n\t\t\"Hash\": \"" + string(b.hash);
+	str += ",\n\t\t\"BlocPrecedent\": \"" + string(b.previous_hash);
+	str += "\"\n\t},\n\t\"DateDeCreation\": \"" + string(buffer);
+	str += "\",\n\t\"Version\": \"" + version;
+	str += "\",\n\t\"Transactions\": [";
+	for (unsigned int i = 0; i < b.tx1.UTXOs.size(); i++) {
+		str += "\n\t{\n\t\t\"Id\": \"" + b.tx1.UTXOs[i].nUTX0;
+		str += "\",\n\t\t\"date\": \"" + string(buffer);
+		str += "\",\n\t\t\"Bloc\": \"" + b.tx1.UTXOs[i].nBloc;
+		str += "\",\n\t\t\"ID_init\": \"" + ID_init;
+		str += "\",\n\t\t\"ID_recev\": \"" + string(b.tx1.UTXOs[i].dest, b.tx1.UTXOs[i].dest + sizeof b.tx1.UTXOs[i].dest / sizeof b.tx1.UTXOs[i].dest[0]);
+		str += "\",\n\t\t\"montant\": \"" + to_string(b.tx1.UTXOs[i].montant);
+		str += "\"\n\t}";
+		if (i != (b.tx1.UTXOs.size() - 1)) {
+			str += ",";
+		}
+	}
+
+	return str;
+}
+
+string FileInterface::toString(bool allInfos, int index)
+{
+	std::time_t rawtime;
+	std::tm* timeinfo;
+	char buffer[80];
+
+	std::time(&rawtime);
+	timeinfo = std::localtime(&rawtime);
+
+	std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
+	string version = "0x2000";
+	string ID_init = "1";
+	Bloc b = findByIndex(index);
+	string str;
+	str = "{ \n\t\"identifiant\": \"" + to_string(b.num);
+	str += "\",\n\t\"NombreDeTransaction\": \"1\",\n\t\"Hashes\": { \n\t\t\"Hash\": \"" + string(b.hash);
+	str += ",\n\t\t\"BlocPrecedent\": \"" + string(b.previous_hash);
+	str += "\"\n\t},\n\t\"DateDeCreation\": \"" + string(buffer);
+	str += "\",\n\t\"Version\": \"" + version;
+	str += "\",\n\t\"Transactions\": [";
+	for (unsigned int i = 0; i < b.tx1.UTXOs.size(); i++) {
+		str += "\n\t{\n\t\t\"Id\": \"" + b.tx1.UTXOs[i].nUTX0;
+		str += "\",\n\t\t\"date\": \"" + string(buffer);
+		str += "\",\n\t\t\"Bloc\": \"" + b.tx1.UTXOs[i].nBloc;
+		str += "\",\n\t\t\"ID_init\": \"" + ID_init;
+		str += "\",\n\t\t\"ID_recev\": \"" + string(b.tx1.UTXOs[i].dest, b.tx1.UTXOs[i].dest + sizeof b.tx1.UTXOs[i].dest / sizeof b.tx1.UTXOs[i].dest[0]);
+		str += "\",\n\t\t\"montant\": \"" + to_string(b.tx1.UTXOs[i].montant);
+		str += "\"\n\t}";
+		if (i != (b.tx1.UTXOs.size() - 1)) {
+			str += ",";
+		}
+	}
+	
+	return str;
 }
 
 Bloc FileInterface::findByHash(string hash) {

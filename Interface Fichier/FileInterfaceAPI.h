@@ -9,6 +9,7 @@ using json = nlohmann::json;
 class FileInterface {
 private:
 	std::string fichier;
+	void write(std::string str);
 
 public:
 	// Constructeur : initialisation la classe et lit le fichier json passé en paramètre
